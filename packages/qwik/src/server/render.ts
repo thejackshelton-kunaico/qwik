@@ -137,7 +137,27 @@ export async function renderToStream(
   const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
     ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? {}))
-    : undefined;
+    : [];
+
+  const includeMode = opts.qwikLoader?.include ?? 'auto';
+  const positionMode = opts.qwikLoader?.position ?? 'bottom';
+  if (positionMode === 'top' && includeMode !== 'never') {
+    const qwikLoaderScript = getQwikLoaderScript({
+      debug: opts.debug,
+    });
+    beforeContent.push(
+      jsx('script', {
+        id: 'qwikloader',
+        dangerouslySetInnerHTML: qwikLoaderScript,
+      })
+    );
+    // Assume there will be at least click handlers
+    beforeContent.push(
+      jsx('script', {
+        dangerouslySetInnerHTML: `window.qwikevents.push('click')`,
+      })
+    );
+  }
 
   const renderTimer = createTimer();
   const renderSymbols: string[] = [];
@@ -191,11 +211,9 @@ export async function renderToStream(
       }
 
       const needLoader = !snapshotResult || snapshotResult.mode !== 'static';
-      const includeMode = opts.qwikLoader?.include ?? 'auto';
       const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
       if (includeLoader) {
         const qwikLoaderScript = getQwikLoaderScript({
-          events: opts.qwikLoader?.events,
           debug: opts.debug,
         });
         children.push(
@@ -207,12 +225,12 @@ export async function renderToStream(
         );
       }
 
+      // We emit the events separately so other qwikloaders can see them
       const extraListeners = Array.from(containerState.$events$, (s) => JSON.stringify(s));
       if (extraListeners.length > 0) {
-        let content = `window.qwikevents.push(${extraListeners.join(', ')})`;
-        if (!includeLoader) {
-          content = `window.qwikevents||=[];${content}`;
-        }
+        const content =
+          (includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`) +
+          `.push(${extraListeners.join(', ')})`;
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,

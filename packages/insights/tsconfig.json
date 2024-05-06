@@ -9,7 +9,7 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "incremental": true,
@@ -19,10 +19,8 @@
     "types": ["node", "vite/client"],
     "paths": {
       "~/*": ["./src/*"],
-      "@builder.io/qwik-city/*": ["./node_modules/@builder.io/qwik-city/*"],
-      "@builder.io/qwik-labs": ["../qwik-labs/src/index.ts"],
-    },
+      "@qwik-client-manifest": ["../../qwik/src/server/server-modules.d.ts"]
+    }
   },
-  "files": ["./.eslintrc.cjs", "vitest.config.ts"],
-  "include": ["src", "./*.d.ts"],
+  "exclude": ["./dist"]
 }
