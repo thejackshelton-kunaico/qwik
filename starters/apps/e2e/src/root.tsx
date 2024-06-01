@@ -31,7 +31,7 @@ import { TreeshakingApp } from "./components/treeshaking/treeshaking";
 import { TwoListeners } from "./components/two-listeners/twolisteners";
 import { UseId } from "./components/useid/useid";
 import { Watch } from "./components/watch/watch";
-// import { SyncQRL } from "./components/sync-qrl/sync-qrl";
+import { SyncQRL } from "./components/resuming/sync-qrl";
 // import { RenderExceptions, UseTaskExceptions } from "./components/exceptions";
 
 import "./global.css";
@@ -66,7 +66,7 @@ const tests: Record<string, FunctionComponent> = {
   "/e2e/events-client": () => <EventsClient />,
   "/e2e/no-resume": () => <NoResume />,
   "/e2e/resuming": () => <Resuming1 />,
-  // "/e2e/sync-qrl": () => <SyncQRL />,
+  "/e2e/sync-qrl": () => <SyncQRL />,
   "/e2e/computed": () => <ComputedRoot />,
   "/e2e/build-variables": () => <BuildVariables />,
   // "/e2e/exception/render": () => <RenderExceptions />,
