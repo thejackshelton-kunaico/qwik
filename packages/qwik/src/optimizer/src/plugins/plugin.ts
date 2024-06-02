@@ -18,6 +18,7 @@ import type {
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import type { LoadResult, OutputBundle, TransformResult } from 'rollup';
+import { target } from 'scripts/util';
 
 const REG_CTX_NAME = ['server'];
 
@@ -398,12 +399,19 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       if (!(id.startsWith('.') || path.isAbsolute(id))) {
         return;
       }
-      const match = /^([^?]*)\?_qrl_parent=/.exec(id);
-      if (match) {
-        // ssr mode asking for a client jsPacket, fall through to the devserver
-        // building via ctx.load doesn't seem to work
-        const packetId = `${opts.rootDir}${match[1]}`;
-        return { id: packetId };
+      if (opts.target === 'ssr') {
+        const match = /^([^?]*)\?_qrl_parent=(.*)/.exec(id);
+        if (match) {
+          // ssr mode asking for a client qrl, this will fall through to the devserver
+          // building here via ctx.load doesn't seem to work (target is always ssr?)
+          // eslint-disable-next-line prefer-const
+          let [, qrlId, parentId] = match[1];
+          // If the parent is not in root (e.g. pnpm symlink), the qrl also isn't
+          if (parentId.startsWith(opts.rootDir)) {
+            qrlId = `${opts.rootDir}${qrlId}`;
+          }
+          return { id: qrlId };
+        }
       }
       const parsedId = parseId(id);
       let importeePathId = normalizePath(parsedId.pathId);
@@ -629,6 +637,19 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
 
       const newOutput = optimizer.transformModulesSync(transformOpts);
+      const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
+      if (opts.target === 'ssr') {
+        // we're in dev mode. All QRLs that might be emitted in SSR HTML are defined here.
+        // register them so that they can be resolved by the dev server
+        const regex = /_([a-zA-Z0-9]{11,11})['"][,)]/g;
+        const matches = module.code.matchAll(regex);
+        console.log(
+          '----- found ',
+          id,
+          [...matches].map((m) => m[1])
+        );
+      }
+
       // uncomment to show transform results
       debug({ isSSR, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
@@ -643,7 +664,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
-        if (isAdditionalFile(mod)) {
+        if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
@@ -659,7 +680,6 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
         await ctx.load({ id });
       }
 
-      const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
       return {
         code: module.code,
         map: module.map,

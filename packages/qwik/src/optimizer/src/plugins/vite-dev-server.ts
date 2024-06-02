@@ -164,14 +164,11 @@ export async function configureDevServer(
                     console.error('unknown qrl requested without parent:', symbolName);
                     return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
                   }
-                  const packetFile = `${path.dirname(parent)}/${symbolName.toLowerCase()}.js?_qrl_parent=/${srcBase}${parent}`;
+                  const packetFile = `${path.dirname(parent)}/${symbolName.toLowerCase()}.js?_qrl_parent=${parent}`;
                   return [symbolName, `${base}${srcBase}${packetFile}`];
                 },
             prefetchStrategy: null,
             serverData,
-            containerAttributes: {
-              ...serverData.containerAttributes,
-            },
           };
 
           res.setHeader('Content-Type', 'text/html; charset=utf-8');

@@ -951,7 +951,7 @@ impl<'a> QwikTransform<'a> {
 		];
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.rel_path,
+				&self.options.path_data.abs_path,
 				hook_data,
 				span,
 			));
@@ -1016,7 +1016,7 @@ impl<'a> QwikTransform<'a> {
 
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.rel_path,
+				&self.options.path_data.abs_path,
 				&hook_data,
 				&span,
 			));
@@ -1684,7 +1684,7 @@ impl<'a> QwikTransform<'a> {
 		let mut fn_name: &JsWord = &_NOOP_QRL;
 		if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.rel_path,
+				&self.options.path_data.abs_path,
 				&hook_data,
 				&DUMMY_SP,
 			));
@@ -2278,7 +2278,7 @@ pub fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleIte
 fn escape_sym(str: &str) -> String {
 	str.chars()
 		.flat_map(|x| match x {
-			'A'..='Z' | 'a'..='z' | '0'..='9' | '_' => Some(x),
+			'A'..='Z' | 'a'..='z' | '0'..='9' => Some(x),
 			_ => Some('_'),
 		})
 		// trim and squash underscores
@@ -2345,7 +2345,7 @@ fn parse_symbol_name(symbol_name: JsWord, dev: bool) -> (JsWord, JsWord, JsWord)
 	(s_n, display_name.into(), hash.into())
 }
 
-fn get_qrl_dev_obj(rel_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
+fn get_qrl_dev_obj(abs_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 	ast::Expr::Object(ast::ObjectLit {
 		span: DUMMY_SP,
 		props: vec![
@@ -2353,7 +2353,7 @@ fn get_qrl_dev_obj(rel_path: &Path, hook: &HookData, span: &Span) -> ast::Expr {
 				key: ast::PropName::Ident(ast::Ident::new(js_word!("file"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 					span: DUMMY_SP,
-					value: rel_path.to_str().unwrap().into(),
+					value: abs_path.to_str().unwrap().into(),
 					raw: None,
 				}))),
 			}))),
