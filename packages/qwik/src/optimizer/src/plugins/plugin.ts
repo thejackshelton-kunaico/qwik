@@ -18,7 +18,6 @@ import type {
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import type { LoadResult, OutputBundle, TransformResult } from 'rollup';
-import { target } from 'scripts/util';
 
 const REG_CTX_NAME = ['server'];
 
@@ -651,7 +650,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
 
       // uncomment to show transform results
-      debug({ isSSR, strip }, transformOpts, newOutput);
+      // debug({ isSSR, strip }, transformOpts, newOutput);
       diagnosticsCallback(newOutput.diagnostics, optimizer, srcDir);
 
       if (isSSR) {

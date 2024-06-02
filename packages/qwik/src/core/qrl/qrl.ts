@@ -210,7 +210,7 @@ export const serializeQRL = (qrl: QRLInternal, opts: QRLSerializeOptions = {}) =
       throwErrorAndStop('Sync QRL without containerState');
     }
   }
-  let output = `${chunk}#${symbol}`;
+  let output = `${encodeURI(chunk)}#${symbol}`;
   const capture = qrl.$capture$;
   const captureRef = qrl.$captureRef$;
   if (captureRef && captureRef.length) {
@@ -245,7 +245,7 @@ export const parseQRL = <T = any>(qrl: string, containerEl?: Element): QRLIntern
     throw new Error(`Invalid QRL format "${qrl}"`);
   }
   const { c, a, s, p } = parse.groups!;
-  const chunk = `${c}${a ? `#${a}` : ''}`;
+  const chunk = `${decodeURI(c)}${a ? `#${a}` : ''}`;
   const symbol = s || 'default';
   const capture = p ? p.split(' ') : [];
 

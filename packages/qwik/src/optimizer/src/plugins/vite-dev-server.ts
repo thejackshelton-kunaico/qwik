@@ -137,13 +137,6 @@ export async function configureDevServer(
             });
           });
 
-          let srcBase = opts.srcDir
-            ? path.relative(opts.rootDir, opts.srcDir).replace(/\\/g, '/')
-            : '';
-          if (srcBase !== '') {
-            srcBase += '/';
-          }
-
           const renderOpts: RenderToStreamOptions = {
             debug: true,
             locale: serverData.locale,
@@ -161,11 +154,19 @@ export async function configureDevServer(
                     return chunk;
                   }
                   if (!parent) {
-                    console.error('unknown qrl requested without parent:', symbolName);
+                    console.error(
+                      'qwik vite-dev-server: unknown qrl requested without parent:',
+                      symbolName
+                    );
                     return [symbolName, `${base}${symbolName.toLowerCase()}.js`];
                   }
-                  const packetFile = `${path.dirname(parent)}/${symbolName.toLowerCase()}.js?_qrl_parent=${parent}`;
-                  return [symbolName, `${base}${srcBase}${packetFile}`];
+                  const parentPath = path.dirname(parent);
+                  // support getting files through pnpm link symlinks
+                  const qrlPath = parentPath.startsWith(opts.rootDir)
+                    ? path.relative(opts.rootDir, parentPath)
+                    : parentPath;
+                  const qrlFile = `${qrlPath}/${symbolName.toLowerCase()}.js?_qrl_parent=${parent}`;
+                  return [symbolName, `${base}${qrlFile}`];
                 },
             prefetchStrategy: null,
             serverData,
