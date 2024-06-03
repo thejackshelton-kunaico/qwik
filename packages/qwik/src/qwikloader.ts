@@ -107,7 +107,7 @@ export const qwikLoader = (
         const symbol = match![3];
         const reqTime = performance.now();
         let handler: undefined | any;
-        let importError: undefined | 'sync' | 'async';
+        let importError: undefined | 'sync' | 'async' | 'no-symbol';
         let error: undefined | Error;
         const isSync = qrl.startsWith('#');
         const eventData = { qBase, qManifest, qVersion, href, symbol, element, reqTime };
@@ -128,10 +128,11 @@ export const qwikLoader = (
             }
             handler = handler[symbol];
             if (!handler) {
+              importError = 'no-symbol';
               error = new Error(`${symbol} not in ${uri}`);
             }
           } catch (err) {
-            importError = 'async';
+            importError ||= 'async';
             error = err as Error;
           }
         }
